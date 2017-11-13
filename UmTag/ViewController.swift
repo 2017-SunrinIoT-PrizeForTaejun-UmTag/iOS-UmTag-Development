@@ -9,8 +9,32 @@
 import UIKit
 import GoogleMaps
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, GMSMapViewDelegate, CLLocationManagerDelegate {
 
+    var mapView: GMSMapView!
+    var marker = GMSMarker?
+    var locationManager:CLLocationManager!
+    
+    override func loadView() {
+        let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
+        mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
+        mapView.accessibilityElementsHidden = false
+        mapView.isMyLocationEnabled = true
+        view = mapView
+        
+        mapView.delegate = self
+        
+        //블루투스 통신해야함
+//        let position = CLLocationCoordinate2D(latitude: coor.latitude, longitude: coor.longitude)
+//        marker = GMSMarker(position: position)
+//        marker.title = "HERE"
+//        marker.snippet = "Status : " + text
+//        marker.map = mapView
+        
+        mapView.settings.compassButton = true
+        mapView.settings.myLocationButton = true
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -20,32 +44,36 @@ class ViewController: UIViewController {
     //UI생성
     func setUI(){
         setUISetting()
-        setGoogleMapView()
         setButtonView()
+        GPSSetting()
     }
     
     //기본 UI 세팅
     func setUISetting(){
         
-        //네비게이션 바 없애는 코드
-//        self.navigationController?.setNavigationBarHidden(true, animated: true)
-
         //배경 색
         view.backgroundColor = UIColor.green
     }
     
-    //구글 맵 생성
-    func setGoogleMapView(){
+    //GPS 권한 요청
+    func GPSSetting(){
+        locationManager.requestWhenInUseAuthorization()
         
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest // You can change the locaiton accuary here.
+            locationManager.startUpdatingLocation()
+        }
     }
-    
+
     
     //버튼 생성
     func setButtonView(){
-        let currentLocationButton = UIButton(frame: CGRect(x: 10, y: view.frame.height * 0.9, width: view.frame.width * 0.5 - 5, height: view.frame.height * 0.1))
-        currentLocationButton.setTitle("CURRENT LOCATION", for: .normal)
-        currentLocationButton.addTarget(ViewController(), action: #selector(currentLocationButtonClicked), for: .touchUpInside)
-        view.addSubview(currentLocationButton)
+        let unLockButton = UIButton(frame: CGRect(x: 10, y: view.frame.height * 0.9, width: view.frame.width * 0.5 - 5, height: view.frame.height * 0.1))
+        unLockButton.setTitle("UNLOCK", for: .normal)
+        unLockButton.addTarget(ViewController(), action: #selector(unLockButtonClicked), for: .touchUpInside)
+        view.addSubview(unLockButton)
         
         let umbrellaLocationButton = UIButton(frame: CGRect(x: 10, y: view.frame.height * 0.9, width: view.frame.width * 0.5 - 5, height: view.frame.height * 0.1))
         umbrellaLocationButton.setTitle("CURRENT LOCATION", for: .normal)
@@ -57,23 +85,13 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-    class GoogleMapView: UIViewController{
-        override func loadView() {
-            let camera = GMSCameraPosition.camera(withLatitude: -33.86, longitude: 151.20, zoom: 6.0)
-            let mapView = GMSMapView.map(withFrame: CGRect.zero, camera: camera)
-            mapView.isMyLocationEnabled = true
-            view = mapView
-            
-            // Creates a marker in the center of the map.
-            let marker = GMSMarker()
-            marker.position = CLLocationCoordinate2D(latitude: -33.86, longitude: 151.20)
-            marker.title = "Sydney"
-            marker.snippet = "Australia"
-            marker.map = mapView
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let coor = manager.location?.coordinate{
+            print("latitude" + String(coor.latitude) + "/ longitude" + String(coor.longitude))
         }
     }
- 
+
     func getCurrentLocation(){
         
     }
@@ -82,12 +100,31 @@ class ViewController: UIViewController {
         
     }
     
-    func currentLocationButtonClicked(){
-        
+    func unLockButtonClicked(){
+        //블루투스로 무언가 받고
+        var isLock: Bool = false
+        if(isLock){
+            isLock = false
+        }else{
+            isLock = true
+        }
     }
     
     func umbrellaLocationButtonClicked(){
-        
+        //블루투스로 무언가 받고
+        var isLock: Bool = false
+        var text:String
+        if(isLock){
+            text = "Locked"
+        }else{
+            text = "UnLocked"
+        }
+        //블루투스통신해야함
+//        let position = CLLocationCoordinate2D(latitude: coor.latitude, longitude: coor.longitude)
+//        marker = GMSMarker(position: position)
+//        marker.title = "HERE"
+//        marker.snippet = "Status : " + text
+//        marker.map = mapView
     }
 }
 
